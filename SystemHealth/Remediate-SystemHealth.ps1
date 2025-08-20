@@ -34,10 +34,10 @@ try {
     # --- Passo 1: Reparar com DISM ---
     Write-Host "------------------------------------------------------------"
     Write-Host "Executando 'DISM /RestoreHealth'. Isso pode demorar vários minutos."
-    $dismProcess = Start-Process -FilePath "DISM.exe" -ArgumentList "/Online /Cleanup-image /RestoreHealth" -Wait -PassThru -WindowStyle Hidden
+    $dismOutput = (DISM.exe /Online /Cleanup-image /RestoreHealth) *>&1
     
-    if ($dismProcess.ExitCode -ne 0) {
-        throw "O comando DISM falhou com o código de saída: $($dismProcess.ExitCode)."
+    if ($LASTEXITCODE -ne 0) {
+        throw "O comando DISM falhou com o código de saída: $($LASTEXITCODE). Saída: `n$($dismOutput | Out-String)"
     } else {
         Write-Host "DISM concluído com sucesso."
     }
@@ -45,10 +45,10 @@ try {
     # --- Passo 2: Reparar com SFC ---
     Write-Host "------------------------------------------------------------"
     Write-Host "Executando 'SFC /scannow'. Isso também pode demorar."
-    $sfcProcess = Start-Process -FilePath "SFC.exe" -ArgumentList "/scannow" -Wait -PassThru -WindowStyle Hidden
+    $sfcOutput = (SFC.exe /scannow) *>&1
 
-    if ($sfcProcess.ExitCode -ne 0) {
-        throw "O comando SFC falhou com o código de saída: $($sfcProcess.ExitCode)."
+    if ($LASTEXITCODE -ne 0) {
+        throw "O comando SFC falhou com o código de saída: $($LASTEXITCODE). Saída: `n$($sfcOutput | Out-String)"
     } else {
         Write-Host "SFC concluído com sucesso."
     }

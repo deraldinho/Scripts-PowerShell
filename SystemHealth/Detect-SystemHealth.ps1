@@ -16,29 +16,29 @@
 #>
 
 try {
-    Write-Host "Iniciando script de detecção de integridade do sistema."
+    Write-Output "Iniciando script de detecção de integridade do sistema."
     $issueFound = $false
 
     # --- Passo 1: Verificar a imagem do Windows com DISM (sem reparar) ---
-    Write-Host "Verificando o repositório de componentes com 'DISM /ScanHealth'..."
+    Write-Output "Verificando o repositório de componentes com 'DISM /ScanHealth'..."
     $dismProcess = Start-Process -FilePath "DISM.exe" -ArgumentList "/Online /Cleanup-Image /ScanHealth" -Wait -PassThru -NoNewWindow
 
     if ($dismProcess.ExitCode -ne 0) {
         Write-Warning "DISM encontrou um problema. Código de saída: $($dismProcess.ExitCode)."
         $issueFound = $true
     } else {
-        Write-Host "DISM não encontrou problemas."
+        Write-Output "DISM não encontrou problemas."
     }
 
     # --- Passo 2: Verificar arquivos do sistema com SFC (sem reparar) ---
-    Write-Host "Verificando arquivos do sistema com 'SFC /verifyonly'..."
+    Write-Output "Verificando arquivos do sistema com 'SFC /verifyonly'..."
     $sfcProcess = Start-Process -FilePath "SFC.exe" -ArgumentList "/verifyonly" -Wait -PassThru -NoNewWindow
 
     if ($sfcProcess.ExitCode -ne 0) {
         Write-Warning "SFC encontrou um problema de integridade. Código de saída: $($sfcProcess.ExitCode)."
         $issueFound = $true
     } else {
-        Write-Host "SFC não encontrou problemas de integridade."
+        Write-Output "SFC não encontrou problemas de integridade."
     }
 
     # --- Decisão Final ---

@@ -19,6 +19,7 @@
 .EXAMPLE
     .\ChaveMestre-v17.ps1 -WebhookUrl "https://..." -DryRun
 #>
+[CmdletBinding()]
 param (
     [string]$WebhookUrl = "", # Insira a URL do Webhook do Slack aqui para receber relatórios.
     [string]$Destino = "$([Environment]::GetFolderPath('Desktop'))",
@@ -155,7 +156,7 @@ Write-Log "   Disco $($driveAntes.Name): $([math]::Round($driveAntes.Free / 1GB,
 #region Limpeza de Caches de TODOS OS USUÁRIOS
 
 Safe-Run {
-    $userProfiles = Get-ChildItem -Path 'C:\Users' -Directory | Where-Object { Test-Path (Join-Path $_.FullName 'AppData') -and $_.Name -ne 'Default' -and $_.Name -ne 'Public' }
+    $userProfiles = Get-CimInstance -ClassName Win32_UserProfile | Where-Object { $_.LocalPath -ne $null -and (Test-Path (Join-Path $_.LocalPath 'AppData')) -and $_.SID -notlike "S-1-5-18" -and $_.SID -notlike "S-1-5-19" -and $_.SID -notlike "S-1-5-20" } | Select-Object @{Name='FullName';Expression={$_.LocalPath}}, @{Name='Name';Expression={$_.LocalPath.Split('\')[-1]}}
 
     foreach ($user in $userProfiles) {
         $userReport = Invoke-CacheCleanupForUser -User $user -DryRun:$DryRun.IsPresent
@@ -206,7 +207,12 @@ Safe-Run {
 #region Reparo Avançado de Componentes
 
 Safe-Run {
-    Stop-Service -Name Spooler -Force
+    try {
+        Stop-Service -Name Spooler -ErrorAction Stop
+    } catch {
+        Write-Log "⚠️ Falha ao parar o serviço Spooler graciosamente. Tentando forçar..."
+        Stop-Service -Name Spooler -Force
+    }
     $spoolerPath = "$env:SystemRoot\System32\spool\PRINTERS\*"
     if (Test-Path $spoolerPath) {
         Write-Log "Limpando fila de impressão..."
@@ -217,7 +223,14 @@ Safe-Run {
 
 Safe-Run {
     $servicesToStop = @("wuauserv", "cryptSvc", "bits", "msiserver")
-    Stop-Service -Name $servicesToStop -Force
+    foreach ($service in $servicesToStop) {
+        try {
+            Stop-Service -Name $service -ErrorAction Stop
+        } catch {
+            Write-Log "⚠️ Falha ao parar o serviço '$service' graciosamente. Tentando forçar..."
+            Stop-Service -Name $service -Force
+        }
+    }
     $oldSDFolder = "$env:SystemRoot\SoftwareDistribution"
     $oldCatRootFolder = "$env:SystemRoot\System32\catroot2"
     if (Test-Path $oldSDFolder) { Rename-Item -Path $oldSDFolder -NewName "$oldSDFolder.old" -Force }
@@ -251,7 +264,12 @@ Safe-Run {
     $sfcOutput | ForEach-Object { Write-Log "SFC Output: $_" } # Log each line
     if ((Get-Content "$env:windir\Logs\CBS\CBS.log" -ErrorAction SilentlyContinue) | Select-String "Cannot repair member file") { Write-Log "⚠️ SFC encontrou erros incorrigíveis." } else { Write-Log "✅ Verificação SFC concluída." }
 } "Verificação de integridade com SFC"
-Safe-Run { echo s | chkdsk.exe /f /r } "CHKDSK (Modo hard)"
+Safe-Run {
+    Write-Log "Agendando CHKDSK para a próxima reinicialização..."
+    # Marca o volume como "sujo" para que o CHKDSK seja executado na próxima inicialização.
+    # Isso é mais seguro do que forçar a execução imediata.
+    fsutil dirty set $Disco.TrimEnd(':')
+} "Agendamento CHKDSK (Próxima Reinicialização)"
 
 #endregion
 
@@ -321,7 +339,7 @@ if (-not $SemReboot.IsPresent) {
     Write-Host "`n🔥 REINICIALIZAÇÃO AUTOMÁTICA ATIVADA 🔥" -ForegroundColor Red
     Write-Log "♻️  Reiniciando o sistema em 10 segundos..."
     Start-Sleep -Seconds 10
-    # Restart-Computer -Force
+    # Restart-Computer -Force # Use -Force com cautela, pode levar à perda de dados se houver operações pendentes.
 } else {
     Write-Log "⏹️  Reboot automático suprimido."
 }
