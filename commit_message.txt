@@ -1,3 +1,3 @@
-docs: Atualiza documentação dos scripts PowerShell
+docs: Adiciona plano de implementação para novo script
 
-Atualiza o arquivo `documentacao.md` para refletir as melhorias e refatorações aplicadas aos scripts PowerShell, bem como a remoção de um script obsoleto.
+Adiciona o arquivo `plano_implementacao.md` contendo o plano detalhado para a criação do script PowerShell "Gerenciador de Backup de Configurações de Aplicativos".

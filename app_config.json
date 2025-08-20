@@ -1,0 +1,16 @@
+{
+  "apps": [
+    {
+      "name": "Google Chrome",
+      "path": "$env:LOCALAPPDATA\\Google\\Chrome\\User Data"
+    },
+    {
+      "name": "Mozilla Firefox",
+      "path": "$env:APPDATA\\Mozilla\\Firefox\\Profiles"
+    },
+    {
+      "name": "Visual Studio Code",
+      "path": "$env:APPDATA\\Code\\User"
+    }
+  ]
+}
