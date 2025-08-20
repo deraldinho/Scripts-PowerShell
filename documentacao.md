@@ -88,14 +88,3 @@ Esta documentação descreve os scripts PowerShell encontrados no diretório e s
     ```powershell
     ".\Unsorted\Sem título2.ps1"
     ```
-
-## UserManagement
-
-### GetUsersMicrosoft.ps1
-
-*   **Path:** `UserManagement\GetUsersMicrosoft.ps1`
-*   **Descrição:** Conecta-se ao Microsoft Graph para obter uma lista de todos os usuários e suas licenças atribuídas. Exporta a lista para um arquivo CSV.
-*   **Uso:**
-    ```powershell
-    .\UserManagement\GetUsersMicrosoft.ps1
-    ```
