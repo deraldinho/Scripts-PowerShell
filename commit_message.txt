@@ -1,0 +1,3 @@
+docs: Atualiza documentação dos scripts PowerShell
+
+Atualiza o arquivo `documentacao.md` para refletir as melhorias e refatorações aplicadas aos scripts PowerShell, bem como a remoção de um script obsoleto.
